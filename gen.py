@@ -5,8 +5,8 @@ if __name__ != '__main__':
     exit(-1)
 
 with open('./pylam.py', 'w') as f3:
-    with open('./lam.py', 'r') as f1:
-        with open('./opt.py', 'r') as f2:
+    with open('./dev/lam.py', 'r') as f1:
+        with open('./dev/opt.py', 'r') as f2:
             f3.write('#!/usr/bin/python3\n\n')
             f3.write('# -- NOTE: Generated from opt.py --\n\n')
             f3.write(f2.read().removesuffix('main()\n'))

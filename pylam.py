@@ -123,7 +123,41 @@ def main() -> None:
 # -- NOTE: Generated from lam.py --
 
 import ast
+from ast import AST
+from sys import stderr
 from typing import TextIO
+
+
+def prerr(msg) -> None:
+    print(msg, file=stderr, end='')
+
+
+def ast_hammer(node: AST) -> None:
+    if isinstance(node, AST):
+        cls = type(node)
+        prerr(f'({cls.__name__}[{node.__str__()}]')
+        for name in node._fields:
+            try:
+                value = getattr(node, name)
+            except AttributeError:
+                continue
+            ast_hammer(value)
+        if node._attributes:
+            for name in node._attributes:
+                try:
+                    value = getattr(node, name)
+                except AttributeError:
+                    continue
+                if value is None and getattr(cls, name, ...) is None:
+                    continue
+                ast_hammer(value)
+        prerr(')')
+    elif isinstance(node, list):
+        if not node:
+            prerr('()')
+            return
+        for node in node:
+            ast_hammer(node)
 
 
 def entry(input_stream: TextIO, output_stream: TextIO) -> None:
@@ -136,7 +170,18 @@ def entry(input_stream: TextIO, output_stream: TextIO) -> None:
     Returns:
         None
     """
-    output_stream.write(input_stream.read())
+    raw_text = input_stream.read()
+    try:
+        orig_ast = ast.parse(raw_text)
+        print(ast.dump(orig_ast, indent=4))
+        # ast_hammer(orig_ast)
+    except Exception as e:
+        print(f'Got following error when processing input:\n'
+              f'{e}\noutput will be unchanged as input.',
+              file=stderr)
+        output_stream.write(raw_text)
+    output_stream.write(ast.unparse(orig_ast))
+    output_stream.write('\n')
 
 
 # -- NOTE: DONE ---
@@ -151,8 +196,8 @@ main()
 #     exit(-1)
 # 
 # with open('./pylam.py', 'w') as f3:
-#     with open('./lam.py', 'r') as f1:
-#         with open('./opt.py', 'r') as f2:
+#     with open('./dev/lam.py', 'r') as f1:
+#         with open('./dev/opt.py', 'r') as f2:
 #             f3.write('#!/usr/bin/python3\n\n')
 #             f3.write('# -- NOTE: Generated from opt.py --\n\n')
 #             f3.write(f2.read().removesuffix('main()\n'))
