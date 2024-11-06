@@ -8,32 +8,29 @@ def prerr(msg) -> None:
     print(msg, file=stderr, end='')
 
 
+def hammer_statement(stmt: AST) -> None:
+    match stmt:
+        case ast.FunctionDef(name=fname, args=ast.arguments(
+                posonlyargs=[],
+                args=args,
+                kwonlyargs=[],
+                kw_defaults=[],
+                defaults=[])
+        ):
+            args = [arg.arg for arg in args]
+            print(f'[FunctionDef recognized] {fname}({', '.join(args)})')
+        case _:
+            print(f'[{type(stmt).__name__}] leave unchanged.')
+
+
 def ast_hammer(node: AST) -> None:
-    if isinstance(node, AST):
-        cls = type(node)
-        prerr(f'({cls.__name__}[{node.__str__()}]')
-        for name in node._fields:
-            try:
-                value = getattr(node, name)
-            except AttributeError:
-                continue
-            ast_hammer(value)
-        if node._attributes:
-            for name in node._attributes:
-                try:
-                    value = getattr(node, name)
-                except AttributeError:
-                    continue
-                if value is None and getattr(cls, name, ...) is None:
-                    continue
-                ast_hammer(value)
-        prerr(')')
-    elif isinstance(node, list):
-        if not node:
-            prerr('()')
-            return
-        for node in node:
-            ast_hammer(node)
+    match node:
+        case ast.Module(body=body, type_ignores=_):
+            # print('module')
+            for stmt in body:
+                hammer_statement(stmt)
+        case _:
+            print(f'[unknown node:] {node}')
 
 
 def entry(input_stream: TextIO, output_stream: TextIO) -> None:
@@ -49,8 +46,8 @@ def entry(input_stream: TextIO, output_stream: TextIO) -> None:
     raw_text = input_stream.read()
     try:
         orig_ast = ast.parse(raw_text)
-        print(ast.dump(orig_ast, indent=4))
-        # ast_hammer(orig_ast)
+        # print(ast.dump(orig_ast, indent=4))
+        ast_hammer(orig_ast)
     except Exception as e:
         print(f'Got following error when processing input:\n'
               f'{e}\noutput will be unchanged as input.',

@@ -133,31 +133,11 @@ def prerr(msg) -> None:
 
 
 def ast_hammer(node: AST) -> None:
-    if isinstance(node, AST):
-        cls = type(node)
-        prerr(f'({cls.__name__}[{node.__str__()}]')
-        for name in node._fields:
-            try:
-                value = getattr(node, name)
-            except AttributeError:
-                continue
-            ast_hammer(value)
-        if node._attributes:
-            for name in node._attributes:
-                try:
-                    value = getattr(node, name)
-                except AttributeError:
-                    continue
-                if value is None and getattr(cls, name, ...) is None:
-                    continue
-                ast_hammer(value)
-        prerr(')')
-    elif isinstance(node, list):
-        if not node:
-            prerr('()')
-            return
-        for node in node:
-            ast_hammer(node)
+    match node:
+        case ast.Module:
+            print('module')
+        case _:
+            print('[unknown node]')
 
 
 def entry(input_stream: TextIO, output_stream: TextIO) -> None:
